@@ -1,43 +1,26 @@
-# scrape_and_sum.py
 from playwright.sync_api import sync_playwright
+import re
 
-urls = [
-    "https://exam-portal.iitm.ac.in/qa/seed/60",
-    "https://exam-portal.iitm.ac.in/qa/seed/61",
-    "https://exam-portal.iitm.ac.in/qa/seed/62",
-    "https://exam-portal.iitm.ac.in/qa/seed/63",
-    "https://exam-portal.iitm.ac.in/qa/seed/64",
-    "https://exam-portal.iitm.ac.in/qa/seed/65",
-    "https://exam-portal.iitm.ac.in/qa/seed/66",
-    "https://exam-portal.iitm.ac.in/qa/seed/67",
-    "https://exam-portal.iitm.ac.in/qa/seed/68",
-    "https://exam-portal.iitm.ac.in/qa/seed/69",
-]
+BASE_URL = "https://sanand0.github.io/tdsdata/js_table/?seed="
 
-def extract_numbers_from_page(page):
-    numbers = []
-    tables = page.query_selector_all("table")
-    for table in tables:
-        rows = table.query_selector_all("tr")
-        for row in rows:
-            cells = row.query_selector_all("td")
-            for cell in cells:
-                try:
-                    num = float(cell.inner_text().replace(",", "").strip())
-                    numbers.append(num)
-                except:
-                    pass
-    return numbers
+def extract_numbers_from_text(text):
+    return [float(num.replace(",", "")) for num in re.findall(r'[\d,]+\.\d+|[\d,]+', text)]
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page()
-    total = 0
+    total_sum = 0
 
-    for url in urls:
+    for seed in range(60, 70):
+        url = f"{BASE_URL}{seed}"
         page.goto(url)
-        numbers = extract_numbers_from_page(page)
-        total += sum(numbers)
+        page.wait_for_selector("table")
 
-    print(f"TOTAL SUM: {total}")
+        tables = page.query_selector_all("table")
+        for table in tables:
+            content = table.inner_text()
+            numbers = extract_numbers_from_text(content)
+            total_sum += sum(numbers)
+
+    print(f"TOTAL SUM ACROSS SEEDS 60–69: {total_sum}")
     browser.close()
