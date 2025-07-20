@@ -1,0 +1,26 @@
+name: Run QA scrape for DataDash [24f2005252@ds.study.iitm.ac.in]
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install
+
+      - name: Run QA Scraper [24f2005252@ds.study.iitm.ac.in]
+        run: python scrape_and_sum.py
